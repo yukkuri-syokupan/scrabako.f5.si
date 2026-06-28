@@ -34,7 +34,6 @@
             box-sizing: border-box;
         }
 
-        /* 👑 タイトルを常に画面中央に固定 */
         h1 { 
             font-size: 36px; 
             font-weight: 700;
@@ -43,7 +42,6 @@
             text-align: center;
         }
 
-        /* 👥 2カラムレイアウト（お題がある時は左右に並ぶ） */
         .main-layout {
             display: flex;
             gap: 40px;
@@ -52,7 +50,6 @@
             width: 100%;
         }
 
-        /* 👈 左側：プロフィール・設定・投稿エリア */
         .left-column {
             flex: 1;
             min-width: 320px;
@@ -62,13 +59,11 @@
             transition: all 0.2s ease;
         }
 
-        /* 👉 右側：お題リストエリア */
         .right-column {
             flex: 1.5;
             min-width: 0; 
         }
 
-        /* 🎯 【完全中央揃え】非公開・お題ゼロの時は右カラムを消し、左カラムを中央寄せ */
         .main-layout.center-mode {
             justify-content: center;
         }
@@ -113,7 +108,6 @@
             object-fit: contain;
         }
 
-        /* ボタン・フォーム（白黒ベースに統一） */
         button { 
             background: var(--text-color); 
             color: var(--bg-color); 
@@ -216,7 +210,11 @@
         
         .odai-item { text-align: left; padding: 25px 0; font-size: 15px; line-height: 1.6; border-bottom: 1px solid var(--border-color); }
         .odai-item:first-child { padding-top: 0; }
-        .odai-sender { font-size: 11px; color: var(--sub-color); margin-bottom: 6px; font-weight: 600; }
+        
+        /* 🕒 メタ情報表示（Fromと時間） */
+        .odai-meta-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .odai-sender { font-size: 11px; color: var(--sub-color); font-weight: 600; }
+        .odai-time { font-size: 10px; color: var(--sub-color); font-weight: 400; }
         
         .answer-box {
             margin-top: 10px;
@@ -304,22 +302,18 @@
 <div class="container">
     <h1>Scrabako</h1>
     
-    <!-- 👥 メインレイアウト（デフォルトで中央寄せ） -->
     <div id="main-layout-wrapper" class="main-layout center-mode">
         
-        <!-- 👈 左側：プロフィール・設定・投稿エリア -->
         <div class="left-column">
             <img id="scratch-avatar-display" class="scratch-avatar hidden" src="" alt="Avatar">
             <div id="page-owner-display" class="page-owner hidden"></div>
             <div id="custom-badge-display" class="badge-display-container hidden"></div>
                 
-            <!-- 1. 未ログイン -->
             <div id="logged-out-zone" class="hidden">
                 <button id="login-btn">Scratchでログインしてお題箱を作る</button>
                 <p class="notice">ログインすると、あなた専用のお題箱URLが作成されます。</p>
             </div>
 
-            <!-- 2. お題送信画面 (一般ユーザー向け) -->
             <div id="send-zone" class="hidden">
                 <div class="hp-trap">
                     <label>Leave this field blank</label>
@@ -331,7 +325,6 @@
                 <p class="notice">このメッセージは相手に届きます。<br><a href="?" style="color: inherit;">自分のお題箱を作る</a></p>
             </div>
 
-            <!-- 3. 管理画面 -->
             <div id="logged-in-zone" class="hidden">
                 <div class="info-card" style="word-break: break-all;">
                     <strong>🔗 あなたのお題箱URL:</strong>
@@ -367,7 +360,6 @@
             <div id="status" class="status"></div>
         </div>
 
-        <!-- 👉 右側：お題リストエリア -->
         <div class="right-column">
             <div id="odai-list-section" class="hidden">
                 <div class="inbox-title" id="inbox-title-text">Inbox / Q&A</div>
@@ -380,7 +372,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getDatabase, ref, push, get, set, update, child, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+    import { getDatabase, ref, push, set, update, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
     
     import { BADGE_CONFIG } from "./badge-config.js";
 
@@ -427,6 +419,18 @@
     const scratchAvatarDisplay = document.getElementById('scratch-avatar-display');
     const badgeSelectWrapper = document.getElementById('badge-select-wrapper');
     const badgeCheckboxesContainer = document.getElementById('badge-checkboxes-container');
+
+    // タイムスタンプ（UNIXミリ秒）を読みやすい日時に変換する関数
+    function formatTime(timestamp) {
+        if (!timestamp) return "";
+        const d = new Date(timestamp);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const date = String(d.getDate()).padStart(2, '0');
+        const hour = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${year}/${month}/${date} ${hour}:${min}`;
+    }
 
     function loadScratchAvatar(username) {
         if (!username) {
@@ -507,9 +511,9 @@
 
         if (targetBoxId) {
             if (savedUser && savedUser.toLowerCase() === targetBoxId.toLowerCase()) {
-                await showLoggedIn(savedUser);
+                await initLoggedInView(savedUser);
             } else {
-                await showSendPage(targetBoxId);
+                await initSendPageView(targetBoxId);
                 checkCooldown();
             }
         } else {
@@ -567,9 +571,6 @@
             });
             statusDiv.innerText = '設定を保存しました！';
             setTimeout(() => { statusDiv.innerText = ''; }, 3000);
-            
-            // 管理室画面を再描画（常に全表示）
-            renderOdai(savedUser, true, currentPublicInboxFlag);
         } catch (e) {
             console.error(e);
             statusDiv.innerText = '設定の保存に失敗しました。';
@@ -589,6 +590,7 @@
         const senderName = senderNameInput.value.trim() || "匿名さん";
 
         try {
+            // 🕒 serverTimestamp() を付与してお題を送信
             await push(ref(db, `odais/${targetBoxId.toLowerCase()}`), {
                 sender: senderName,
                 content: text,
@@ -609,7 +611,8 @@
         }
     });
 
-    async function showLoggedIn(username) {
+    // 管理画面初期化（リアルタイムリスナー設定）
+    async function initLoggedInView(username) {
         loggedInZone.classList.remove('hidden');
         pageOwnerDisplay.innerText = `@${username} の管理画面`;
         pageOwnerDisplay.classList.remove('hidden');
@@ -619,89 +622,101 @@
         myBoxUrlSpan.innerText = `${MY_SITE_URL}?id=${username}`;
         
         const lowerUser = username.toLowerCase();
-        let firebaseSettings = { publicInbox: true, selectedBadges: null };
-        try {
-            const snapshot = await get(ref(db, `settings/${lowerUser}`));
-            if (snapshot.exists()) firebaseSettings = snapshot.val();
-        } catch (e) { console.error(e); }
 
-        publicToggleCheckbox.checked = firebaseSettings.publicInbox !== false;
-        const availableBadges = getUserAvailableBadges(username);
-        
-        if (availableBadges.length > 0) {
-            badgeSelectWrapper.classList.remove('hidden');
-            badgeCheckboxesContainer.innerHTML = '';
-            let checkedTypes = Array.isArray(firebaseSettings.selectedBadges) ? firebaseSettings.selectedBadges : [];
+        // 🔄 設定情報をリアルタイムで監視
+        onValue(ref(db, `settings/${lowerUser}`), (settingsSnapshot) => {
+            let firebaseSettings = { publicInbox: true, selectedBadges: null };
+            if (settingsSnapshot.exists()) {
+                firebaseSettings = settingsSnapshot.val();
+            }
 
-            availableBadges.forEach(b => {
-                const label = document.createElement('label');
-                label.className = 'badge-checkbox-item';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = b.type;
-                checkbox.checked = checkedTypes.includes(b.type);
+            publicToggleCheckbox.checked = firebaseSettings.publicInbox !== false;
+            const availableBadges = getUserAvailableBadges(username);
+            
+            if (availableBadges.length > 0) {
+                badgeSelectWrapper.classList.remove('hidden');
+                badgeCheckboxesContainer.innerHTML = '';
+                let checkedTypes = Array.isArray(firebaseSettings.selectedBadges) ? firebaseSettings.selectedBadges : [];
 
-                const img = document.createElement('img');
-                img.src = b.url; img.alt = b.type;
-                const txt = document.createElement('span');
-                txt.innerText = `(${b.type})`;
+                availableBadges.forEach(b => {
+                    const label = document.createElement('label');
+                    label.className = 'badge-checkbox-item';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = b.type;
+                    checkbox.checked = checkedTypes.includes(b.type);
 
-                checkbox.addEventListener('change', () => {
-                    const tempChecked = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
-                    updateSettingsBadgePreview(username, tempChecked);
+                    const img = document.createElement('img');
+                    img.src = b.url; img.alt = b.type;
+                    const txt = document.createElement('span');
+                    txt.innerText = `(${b.type})`;
+
+                    checkbox.addEventListener('change', () => {
+                        const tempChecked = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
+                        updateSettingsBadgePreview(username, tempChecked);
+                    });
+
+                    label.appendChild(checkbox); label.appendChild(img); label.appendChild(txt);
+                    badgeCheckboxesContainer.appendChild(label);
                 });
+                updateSettingsBadgePreview(username, checkedTypes);
+            } else {
+                badgeSelectWrapper.classList.add('hidden');
+                settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（一般ユーザー）</span>`;
+            }
 
-                label.appendChild(checkbox); label.appendChild(img); label.appendChild(txt);
-                badgeCheckboxesContainer.appendChild(label);
-            });
-            updateSettingsBadgePreview(username, checkedTypes);
-        } else {
-            badgeSelectWrapper.classList.add('hidden');
-            settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（一般ユーザー）</span>`;
-        }
-
-        renderOdai(username, true, firebaseSettings.publicInbox !== false);
+            // 🔄 管理室画面のお題リストもリアルタイム同期へ引き継ぎ
+            startOdaisListening(username, true, firebaseSettings.publicInbox !== false);
+        });
     }
 
-    async function showSendPage(ownerName) {
+    // 一般送信画面初期化（リアルタイムリスナー設定）
+    async function initSendPageView(ownerName) {
         pageOwnerDisplay.innerText = `@${ownerName} のお題箱`;
         pageOwnerDisplay.classList.remove('hidden');
         sendZone.classList.remove('hidden');
         loadScratchAvatar(ownerName);
         
         const lowerOwner = ownerName.toLowerCase();
-        let ownerSettings = { publicInbox: true, selectedBadges: null };
-        try {
-            const snapshot = await get(ref(db, `settings/${lowerOwner}`));
-            if (snapshot.exists()) ownerSettings = snapshot.val();
-        } catch (e) { console.error(e); }
-        
-        let checkedTypes = Array.isArray(ownerSettings.selectedBadges) ? ownerSettings.selectedBadges : [];
-        customBadgeDisplay.innerHTML = '';
-        let hasAnyBadge = false;
 
-        checkedTypes.forEach(type => {
-            const badgeUrl = BADGE_CONFIG[type] ? BADGE_CONFIG[type][lowerOwner] : "";
-            if (badgeUrl) {
-                const img = document.createElement('img');
-                img.src = badgeUrl; img.alt = type;
-                customBadgeDisplay.appendChild(img);
-                hasAnyBadge = true;
+        // 🔄 相手の「公開設定」をリアルタイム監視（他人が設定を変えたら即座に画面が変わる）
+        onValue(ref(db, `settings/${lowerOwner}`), (settingsSnapshot) => {
+            let ownerSettings = { publicInbox: true, selectedBadges: null };
+            if (settingsSnapshot.exists()) {
+                ownerSettings = settingsSnapshot.val();
             }
+            
+            let checkedTypes = Array.isArray(ownerSettings.selectedBadges) ? ownerSettings.selectedBadges : [];
+            customBadgeDisplay.innerHTML = '';
+            let hasAnyBadge = false;
+
+            checkedTypes.forEach(type => {
+                const badgeUrl = BADGE_CONFIG[type] ? BADGE_CONFIG[type][lowerOwner] : "";
+                if (badgeUrl) {
+                    const img = document.createElement('img');
+                    img.src = badgeUrl; img.alt = type;
+                    customBadgeDisplay.appendChild(img);
+                    hasAnyBadge = true;
+                }
+            });
+
+            if (hasAnyBadge) customBadgeDisplay.classList.remove('hidden');
+
+            const isInboxPublic = ownerSettings.publicInbox !== false;
+            
+            // お題のリスト同期を開始
+            startOdaisListening(ownerName, false, isInboxPublic);
         });
-
-        if (hasAnyBadge) customBadgeDisplay.classList.remove('hidden');
-
-        const isInboxPublic = ownerSettings.publicInbox !== false;
-        renderOdai(ownerName, false, isInboxPublic);
     }
 
-    async function renderOdai(username, isAdminView, isInboxPublic) {
-        odaiListDiv.innerHTML = '';
-        inboxTitleText.innerText = isAdminView ? "受信したお題一覧" : (isInboxPublic ? "Inbox / Q&A" : "回答済みのQ&A");
+    // 🔄 お題リストを完全にリアルタイム監視する関数（見えない設定のバグをここで修正）
+    function startOdaisListening(username, isAdminView, isInboxPublic) {
+        const odaisRef = ref(db, `odais/${username.toLowerCase()}`);
+        
+        onValue(odaisRef, (snapshot) => {
+            odaiListDiv.innerHTML = '';
+            inboxTitleText.innerText = isAdminView ? "受信したお題一覧" : (isInboxPublic ? "Inbox / Q&A" : "回答済みのQ&A");
 
-        try {
-            const snapshot = await get(ref(db, `odais/${username.toLowerCase()}`));
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 const keys = Object.keys(data).reverse();
@@ -710,7 +725,7 @@
                 keys.forEach(id => {
                     const item = data[id];
                     
-                    // 管理画面ではない一般公開画面の時、かつ非公開モードで、回答が空なら表示をスキップ
+                    // 【修正】非公開設定の時、一般画面では回答（answer）が無いお題は強制的にスキップして絶対に見せない
                     if (!isAdminView) {
                         if (!isInboxPublic && !item.answer) {
                             return;
@@ -722,14 +737,24 @@
                     const div = document.createElement('div');
                     div.className = 'odai-item';
                     
+                    // 🕒 ニックネームと投稿時間を横並びにするヘッダーレイアウト
+                    const metaFlex = document.createElement('div');
+                    metaFlex.className = 'odai-meta-flex';
+
                     const senderDiv = document.createElement('div');
                     senderDiv.className = 'odai-sender';
                     senderDiv.innerText = `From: ${item.sender || '匿名さん'}`;
                     
+                    const timeDiv = document.createElement('div');
+                    timeDiv.className = 'odai-time';
+                    timeDiv.innerText = formatTime(item.createdAt); // タイムスタンプ表示
+
+                    metaFlex.appendChild(senderDiv);
+                    metaFlex.appendChild(timeDiv);
+                    div.appendChild(metaFlex);
+                    
                     const contentDiv = document.createElement('div');
                     contentDiv.innerText = item.content;
-                    
-                    div.appendChild(senderDiv);
                     div.appendChild(contentDiv);
 
                     if (item.answer) {
@@ -756,16 +781,14 @@
                             replyBtn.disabled = true;
                             const newAnswerText = replyInput.value.trim();
                             
-                            // 💡 update()メソッドを用いて、このお題ID配下の `answer` フィールドのみをピンポイント更新
                             const updates = {};
                             updates[`/odais/${username.toLowerCase()}/${id}/answer`] = newAnswerText;
 
                             try {
                                 await update(ref(db), updates);
-                                renderOdai(username, true, isInboxPublic); 
                             } catch(err) {
                                 console.error(err);
-                                alert("回答の送信に失敗しました。FirebaseのSecurity Rulesを確認してください。");
+                                alert("回答の送信に失敗しました。");
                             } finally {
                                 replyBtn.disabled = false;
                             }
@@ -779,7 +802,6 @@
                     odaiListDiv.appendChild(div);
                 });
 
-                // 表示対象のお題が1件以上あれば2カラム、ゼロなら左カラムを中央寄せ
                 if (visibleCount > 0) {
                     odaiListSection.classList.remove('hidden');
                     mainLayoutWrapper.className = "main-layout";
@@ -791,9 +813,7 @@
                 odaiListSection.classList.add('hidden');
                 mainLayoutWrapper.className = "main-layout center-mode";
             }
-        } catch (e) {
-            console.error(e);
-        }
+        });
     }
 </script>
 </body>
