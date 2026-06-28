@@ -6,22 +6,18 @@
     <title>Scrabako</title>
     <style>
         :root {
-            --bg-color: #f8fafc;
-            --panel-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --border-color: #e2e8f0;
-            --accent-color: #4f46e5;
-            --accent-hover: #4338ca;
-            --answer-bg: #f1f5f9;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --sub-color: #777777;
+            --border-color: #e5e5e5;
+            --card-bg: #fafafa;
+            --answer-bg: #f1f2f6;
         }
 
         body { 
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             background: var(--bg-color); 
-            color: var(--text-main);
+            color: var(--text-color);
             margin: 0; 
             padding: 0;
             display: flex; 
@@ -33,25 +29,21 @@
 
         .container {
             width: 100%;
-            max-width: 1040px; 
-            padding: 60px 20px;
+            max-width: 1000px; 
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
-        /* 👑 タイトルロゴ：中央配置で洗練されたフォント */
+        /* 👑 タイトルを常に画面中央に固定 */
         h1 { 
-            font-size: 38px; 
-            font-weight: 800;
-            margin: 0 auto 40px auto;
-            letter-spacing: -0.02em;
+            font-size: 36px; 
+            font-weight: 700;
+            margin: 0 auto 35px auto;
+            letter-spacing: 0.05em;
             text-align: center;
-            color: var(--text-main);
-            background: linear-gradient(to right, #4f46e5, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
-        /* 👥 2カラムレイアウト構造 */
+        /* 👥 2カラムレイアウト（お題がある時は左右に並ぶ） */
         .main-layout {
             display: flex;
             gap: 40px;
@@ -60,30 +52,28 @@
             width: 100%;
         }
 
-        /* 👈 左側カラム */
+        /* 👈 左側：プロフィール・設定・投稿エリア */
         .left-column {
             flex: 1;
-            min-width: 340px;
-            max-width: 440px;
+            min-width: 320px;
+            max-width: 420px;
             position: sticky;
-            top: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+            top: 20px;
+            transition: all 0.2s ease;
         }
 
-        /* 👉 右側カラム */
+        /* 👉 右側：お題リストエリア */
         .right-column {
-            flex: 1.4;
+            flex: 1.5;
             min-width: 0; 
         }
 
-        /* 🎯 【重要】中央寄せモード（右側が非表示の時、左側を完全中央へ） */
+        /* 🎯 【完全中央揃え】非公開・お題ゼロの時は右カラムを消し、左カラムを中央寄せ */
         .main-layout.center-mode {
             justify-content: center;
         }
         .main-layout.center-mode .left-column {
-            max-width: 480px;
+            max-width: 460px;
             flex: 1;
             position: static;
         }
@@ -91,37 +81,22 @@
             display: none !important;
         }
 
-        /* 📦 モダンなカードスタイル */
-        .card {
-            background: var(--panel-bg);
-            border-radius: 16px;
-            padding: 28px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-        }
-
-        /* 👤 プロフィールエリア */
-        .profile-box {
-            text-align: center;
-        }
-
         .scratch-avatar {
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid var(--border-color);
             object-fit: cover;
-            margin: 0 auto 16px auto;
+            margin: 0 auto 15px auto;
             display: block;
         }
 
         .page-owner {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 8px;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            text-align: center;
         }
 
         .badge-display-container {
@@ -129,205 +104,176 @@
             justify-content: center;
             align-items: center;
             gap: 6px;
-            margin: 0 auto;
-            min-height: 24px;
+            margin: 0 auto 25px auto;
+            min-height: 20px;
         }
         .badge-display-container img {
-            height: 22px;
+            height: 20px;
             width: auto;
             object-fit: contain;
         }
 
-        /* 🎨 ボタンの今どきデザイン */
+        /* ボタン・フォーム（白黒ベースに統一） */
         button { 
-            background: var(--accent-color); 
-            color: #ffffff; 
-            border: none;
+            background: var(--text-color); 
+            color: var(--bg-color); 
+            border: 1px solid var(--text-color); 
             padding: 14px 28px; 
-            border-radius: 10px; 
-            font-size: 15px; 
+            border-radius: 6px; 
+            font-size: 14px; 
             font-weight: 600;
             cursor: pointer; 
-            transition: all 0.2s ease;
+            transition: opacity 0.2s ease;
             width: 100%;
             box-sizing: border-box;
-            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
         }
-        button:hover { 
-            background: var(--accent-hover); 
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
-        }
-        button:active { transform: translateY(0); }
-        button:disabled { 
-            background: #cbd5e1; 
-            color: #94a3b8; 
-            cursor: not-allowed; 
-            transform: none !important;
-            box-shadow: none !important;
-        }
+        button:hover { opacity: 0.8; }
+        button:disabled { background: #cccccc; border-color: #cccccc; color: #666666; cursor: not-allowed; opacity: 1; }
 
         button.outline {
             background: transparent;
-            color: var(--danger-color); 
-            border: 1px solid #fecaca;
+            color: #ff4757; 
+            border: 1px solid #ffcccb;
             width: auto;
             padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 6px;
-            box-shadow: none;
+            font-size: 12px;
+            border-radius: 4px;
         }
-        button.outline:hover { background: #fef2f2; border-color: var(--danger-color); box-shadow: none; }
+        button.outline:hover { background: #fff5f5; border-color: #ff4757; opacity: 1; }
         
         button.primary-save {
-            background: var(--success-color);
+            background: #2ed573;
+            border-color: #2ed573;
             color: #fff;
             padding: 12px 24px;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.15);
+            font-size: 14px;
+            margin-top: 15px;
         }
-        button.primary-save:hover { background: #059669; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); }
+        button.primary-save:hover { background: #26af5f; border-color: #26af5f; }
 
         button.answer-submit-btn {
-            background: var(--text-main);
-            color: white;
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: 6px;
+            background: var(--text-color);
+            border-color: var(--text-color);
+            color: var(--bg-color);
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
             width: auto;
-            margin-top: 10px;
-            box-shadow: none;
+            margin-top: 5px;
         }
-        button.answer-submit-btn:hover { background: #0f172a; box-shadow: none; }
 
-        /* ✍️ 入力フォーム系 */
         .name-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 15px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             box-sizing: border-box;
             font-size: 14px;
             outline: none;
-            margin-bottom: 12px;
-            background: #f8fafc;
-            transition: all 0.2s;
+            margin-bottom: 10px;
+            background: var(--bg-color);
+            color: var(--text-color);
         }
-        .name-input:focus { border-color: var(--accent-color); background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .name-input:focus { border-color: var(--text-color); }
 
         textarea {
             width: 100%;
             height: 140px;
-            padding: 16px;
+            padding: 15px;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 6px;
             resize: none;
             box-sizing: border-box;
             font-size: 15px;
             outline: none;
-            margin-bottom: 16px;
-            background: #f8fafc;
-            transition: all 0.2s;
+            margin-bottom: 15px;
+            background: var(--bg-color);
+            color: var(--text-color);
         }
-        textarea:focus { border-color: var(--accent-color); background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        textarea:focus { border-color: var(--text-color); }
 
         .answer-textarea {
             width: 100%;
-            height: 70px;
-            padding: 10px 12px;
-            font-size: 14px;
+            height: 60px;
+            padding: 8px;
+            font-size: 13px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 4px;
             resize: vertical;
-            margin-top: 10px;
+            margin-top: 8px;
             box-sizing: border-box;
             display: block;
-            background: #ffffff;
+            background: var(--bg-color);
+            color: var(--text-color);
         }
-        .answer-textarea:focus { border-color: var(--text-main); outline: none; }
 
-        .notice { font-size: 12px; color: var(--text-sub); margin: 20px 0 0 0; line-height: 1.6; text-align: center; }
-        .status { font-size: 14px; color: var(--accent-color); min-height: 1.5em; font-weight: 600; text-align: center; }
+        .notice { font-size: 12px; color: var(--sub-color); margin-top: 25px; line-height: 1.5; text-align: center; }
+        .status { margin-top: 20px; font-size: 13px; color: var(--text-color); min-height: 1.5em; font-weight: 600; text-align: center; }
         .hidden { display: none !important; }
         .hp-trap { position: absolute; overflow: hidden; clip: rect(0 0 0 0); height: 1px; width: 1px; margin: -1px; padding: 0; border: 0; }
         
-        /* 📜 受信箱（タイムラインスタイル） */
-        .inbox-title { text-align: left; font-size: 18px; font-weight: 800; margin: 0 0 20px 0; letter-spacing: -0.01em; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-        .inbox-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--accent-color); border-radius: 2px; }
+        .inbox-title { text-align: left; font-size: 16px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--text-color); padding-bottom: 8px; }
         
-        .odai-item { 
-            background: var(--panel-bg);
-            border-radius: 14px;
-            padding: 24px; 
-            margin-bottom: 16px;
-            font-size: 15px; 
-            line-height: 1.6; 
-            border: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-        .odai-sender { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
+        .odai-item { text-align: left; padding: 25px 0; font-size: 15px; line-height: 1.6; border-bottom: 1px solid var(--border-color); }
+        .odai-item:first-child { padding-top: 0; }
+        .odai-sender { font-size: 11px; color: var(--sub-color); margin-bottom: 6px; font-weight: 600; }
         
         .answer-box {
-            margin-top: 14px;
-            padding: 14px 18px;
+            margin-top: 10px;
+            padding: 12px 15px;
             background: var(--answer-bg);
-            border-radius: 10px;
+            border-radius: 6px;
             font-size: 14px;
-            color: var(--text-main);
+            color: var(--text-color);
+            border-left: 4px solid var(--text-color);
         }
         .answer-label {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--accent-color);
-            margin-bottom: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--sub-color);
+            margin-bottom: 3px;
             display: block;
         }
 
-        /* ⚙️ 設定内カード */
-        .info-subcard { 
-            background: #f8fafc; 
-            padding: 18px; 
-            border-radius: 10px; 
+        .info-card { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 8px; 
             font-size: 13px; 
             border: 1px solid var(--border-color); 
-            margin-bottom: 16px; 
+            margin-bottom: 20px; 
             text-align: left; 
         }
-        .info-subcard strong { font-size: 14px; color: var(--text-main); display: block; margin-bottom: 6px; }
-        .info-subcard p { margin: 0 0 12px 0; color: var(--text-sub); font-size: 12px; line-height: 1.5; }
+        .info-card strong { font-size: 14px; color: var(--text-color); display: block; margin-bottom: 8px; }
+        .info-card p { margin: 0 0 15px 0; color: var(--sub-color); font-size: 12px; line-height: 1.4; }
 
         .settings-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 16px;
+            padding-top: 15px;
             border-top: 1px solid var(--border-color);
-            margin-top: 16px;
+            margin-top: 15px;
         }
-        .badge-preview-area { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
-        .settings-badge-flex { display: flex; align-items: center; gap: 4px; }
-        .settings-badge-flex img { height: 18px; width: auto; }
+        .badge-preview-area { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .settings-badge-flex { display: flex; align-items: center; gap: 5px; }
+        .settings-badge-flex img { height: 20px; width: auto; object-fit: contain; }
+        .no-badge-text { font-size: 12px; color: var(--sub-color); font-weight: normal; }
 
         .checkbox-container {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 16px 0;
-            font-size: 14px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             user-select: none;
-            line-height: 1.4;
         }
-        .checkbox-container input {
-            cursor: pointer;
-            width: 18px;
-            height: 18px;
-            margin-top: 1px;
-            flex-shrink: 0;
-        }
+        .checkbox-container input { cursor: pointer; width: 16px; height: 16px; margin: 0; }
 
-        .badge-selector-group { margin-bottom: 16px; padding: 12px 0; border-bottom: 1px dashed var(--border-color); }
-        .badge-selector-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+        .badge-selector-group { margin-bottom: 15px; padding: 10px 0; border-bottom: 1px dashed var(--border-color); }
+        .badge-selector-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--text-color); }
         .badge-checkbox-flex-container { display: flex; flex-direction: column; gap: 8px; }
         .badge-checkbox-item {
             display: inline-flex;
@@ -336,20 +282,20 @@
             cursor: pointer;
             background: #fff;
             padding: 6px 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             width: fit-content;
             transition: background 0.2s;
         }
-        .badge-checkbox-item:hover { background: #f1f5f9; }
-        .badge-checkbox-item input { width: 16px; height: 16px; margin: 0; }
-        .badge-checkbox-item img { height: 18px; }
-        .badge-checkbox-item span { font-size: 12px; color: var(--text-sub); }
+        .badge-checkbox-item:hover { background: #f1f1f1; }
+        .badge-checkbox-item input { width: 16px; height: 16px; cursor: pointer; margin: 0; }
+        .badge-checkbox-item img { height: 18px; width: auto; object-fit: contain; }
+        .badge-checkbox-item span { font-size: 12px; font-weight: 600; color: var(--sub-color); }
 
         @media (max-width: 768px) {
-            .main-layout { flex-direction: column; align-items: stretch; gap: 24px; }
+            .main-layout { flex-direction: column; align-items: stretch; }
             .left-column { max-width: 100% !important; position: static; }
-            .right-column { display: block !important; }
+            .right-column { margin-top: 30px; }
         }
     </style>
 </head>
@@ -358,63 +304,59 @@
 <div class="container">
     <h1>Scrabako</h1>
     
-    <!-- 👥 メインレイアウト（デフォルト中央寄せ） -->
+    <!-- 👥 メインレイアウト（デフォルトで中央寄せ） -->
     <div id="main-layout-wrapper" class="main-layout center-mode">
         
-        <!-- 👈 左側カラム -->
+        <!-- 👈 左側：プロフィール・設定・投稿エリア -->
         <div class="left-column">
-            
-            <!-- プロフィールカード -->
-            <div id="profile-card" class="card profile-box hidden">
-                <img id="scratch-avatar-display" class="scratch-avatar hidden" src="" alt="Avatar">
-                <div id="page-owner-display" class="page-owner"></div>
-                <div id="custom-badge-display" class="badge-display-container hidden"></div>
-            </div>
+            <img id="scratch-avatar-display" class="scratch-avatar hidden" src="" alt="Avatar">
+            <div id="page-owner-display" class="page-owner hidden"></div>
+            <div id="custom-badge-display" class="badge-display-container hidden"></div>
                 
-            <!-- 1. 未ログイン時のログインカード -->
-            <div id="logged-out-zone" class="card hidden">
-                <button id="login-btn">Scratchアカウントで始める</button>
-                <p class="notice">ログインすると、あなた専用の可愛いお題箱URLがすぐに作成されます。</p>
+            <!-- 1. 未ログイン -->
+            <div id="logged-out-zone" class="hidden">
+                <button id="login-btn">Scratchでログインしてお題箱を作る</button>
+                <p class="notice">ログインすると、あなた専用のお題箱URLが作成されます。</p>
             </div>
 
-            <!-- 2. お題送信フォームカード -->
-            <div id="send-zone" class="card hidden">
+            <!-- 2. お題送信画面 (一般ユーザー向け) -->
+            <div id="send-zone" class="hidden">
                 <div class="hp-trap">
                     <label>Leave this field blank</label>
                     <input type="text" id="hp-email-field" autocomplete="off">
                 </div>
                 <input type="text" id="sender-name-input" class="name-input" placeholder="ニックネーム（空欄なら匿名さん）" maxlength="20">
-                <textarea id="odai-input" placeholder="ここにメッセージを入力...（温かい言葉を届けましょう）"></textarea>
+                <textarea id="odai-input" placeholder="メッセージを入力..."></textarea>
                 <button id="send-btn">メッセージを送信</button>
-                <p class="notice">このメッセージは相手に届きます。<br><a href="?" style="color: var(--accent-color); text-decoration: none; font-weight: 600;">自分のお題箱を作る</a></p>
+                <p class="notice">このメッセージは相手に届きます。<br><a href="?" style="color: inherit;">自分のお題箱を作る</a></p>
             </div>
 
-            <!-- 3. 管理用ダッシュボードカード -->
-            <div id="logged-in-zone" class="card hidden">
-                <div class="info-subcard" style="word-break: break-all;">
+            <!-- 3. 管理画面 -->
+            <div id="logged-in-zone" class="hidden">
+                <div class="info-card" style="word-break: break-all;">
                     <strong>🔗 あなたのお題箱URL:</strong>
-                    <span id="my-box-url" style="color: var(--accent-color); font-weight: 600;"></span>
+                    <span id="my-box-url" style="color: #555;"></span>
                 </div>
 
-                <div class="info-subcard">
+                <div class="info-card">
                     <strong>⚙️ アカウント設定</strong>
-                    <p>表示するバッジの選択、受信箱の公開範囲の切り替えができます。</p>
+                    <p>表示するバッチの選択、公開範囲の切り替え、ログアウトが行えます。</p>
                     
                     <div id="badge-select-wrapper" class="badge-selector-group hidden">
-                        <div class="badge-selector-title">表示するバッジを選択:</div>
+                        <div class="badge-selector-title">表示するバッチを選択（複数可）:</div>
                         <div id="badge-checkboxes-container" class="badge-checkbox-flex-container"></div>
                     </div>
 
                     <label class="checkbox-container">
                         <input type="checkbox" id="public-toggle-checkbox" checked>
-                        <span>届いたお題を全員に公開する<br><small style="font-weight: normal; color: var(--text-sub);">OFFにすると回答したQ&Aのみ他人に公開されます</small></span>
+                        <span>届いたお題を他人に公開する（Inboxの表示）</span>
                     </label>
 
                     <button id="save-settings-btn" class="primary-save">設定を保存する</button>
 
                     <div class="settings-row">
                         <div class="badge-preview-area">
-                            <span>バッジ:</span>
+                            <span>現在のバッチ:</span>
                             <span id="settings-badge-container" class="settings-badge-flex"></span>
                         </div>
                         <button id="logout-btn" class="outline">ログアウト</button>
@@ -425,7 +367,7 @@
             <div id="status" class="status"></div>
         </div>
 
-        <!-- 👉 右側カラム (お題・Q&Aタイムライン) -->
+        <!-- 👉 右側：お題リストエリア -->
         <div class="right-column">
             <div id="odai-list-section" class="hidden">
                 <div class="inbox-title" id="inbox-title-text">Inbox / Q&A</div>
@@ -472,13 +414,12 @@
     const odaiListSection = document.getElementById('odai-list-section');
     const mainLayoutWrapper = document.getElementById('main-layout-wrapper');
     const statusDiv = document.getElementById('status');
-    const profileCard = document.getElementById('profile-card');
+    const pageOwnerDisplay = document.getElementById('page-owner-display');
     const inboxTitleText = document.getElementById('inbox-title-text');
     
     const loggedOutZone = document.getElementById('logged-out-zone');
     const sendZone = document.getElementById('send-zone');
     const loggedInZone = document.getElementById('logged-in-zone');
-    const pageOwnerDisplay = document.getElementById('page-owner-display');
     const myBoxUrlSpan = document.getElementById('my-box-url');
     const customBadgeDisplay = document.getElementById('custom-badge-display');
     const settingsBadgeContainer = document.getElementById('settings-badge-container');
@@ -488,7 +429,10 @@
     const badgeCheckboxesContainer = document.getElementById('badge-checkboxes-container');
 
     function loadScratchAvatar(username) {
-        if (!username) return;
+        if (!username) {
+            scratchAvatarDisplay.classList.add('hidden');
+            return;
+        }
         fetch(`https://testdev.f5.si/scratch-api.php?user=${encodeURIComponent(username)}`)
             .then(res => res.json())
             .then(data => {
@@ -531,7 +475,7 @@
                 sendBtn.disabled = false;
                 sendBtn.innerText = "メッセージを送信";
             } else {
-                sendBtn.innerText = `連続送信不可 (${currentSeconds}秒...)`;
+                sendBtn.innerText = `連続送信不可 (残り ${currentSeconds}秒...)`;
             }
         }, 1000);
     }
@@ -542,7 +486,7 @@
         const base64Url = btoa(encodeURIComponent(redirectUrlWithParam).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
 
         if (privateCode) {
-            statusDiv.innerText = 'アカウントを認証中...';
+            statusDiv.innerText = 'アカウント検証中...';
             try {
                 const verifyUrl = `https://auth-api.itinerary.eu.org/auth/verifyToken/${privateCode}?method=comment&redirect=${encodeURIComponent(base64Url)}`;
                 const response = await fetch(verifyUrl);
@@ -552,7 +496,7 @@
                     localStorage.setItem('scratch_username', data.username);
                     window.location.href = `?id=${data.username}`;
                 } else {
-                    statusDiv.innerText = '認証に失敗しました。もう一度試してください。';
+                    statusDiv.innerText = '認証に失敗しました。';
                 }
             } catch (error) {
                 console.error(error);
@@ -579,7 +523,7 @@
     });
 
     loginBtn.addEventListener('click', () => {
-        statusDiv.innerText = 'Scratch Auth に接続中...';
+        statusDiv.innerText = '接続中...';
         const appName = encodeURIComponent("Scrabako");
         const redirectUrlWithParam = window.location.href;
         const base64Url = btoa(encodeURIComponent(redirectUrlWithParam).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
@@ -594,7 +538,7 @@
     function updateSettingsBadgePreview(username, checkedTypes) {
         const savedUser = username.toLowerCase();
         if (!checkedTypes || checkedTypes.length === 0) {
-            settingsBadgeContainer.innerHTML = `<span style="font-size:12px;color:var(--text-sub);">なし</span>`;
+            settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（非表示）</span>`;
             return;
         }
         let html = "";
@@ -611,7 +555,7 @@
         
         const lowerUser = savedUser.toLowerCase();
         saveSettingsBtn.disabled = true;
-        statusDiv.innerText = '設定を保存しています...';
+        statusDiv.innerText = '設定を保存中...';
 
         const currentCheckedBadges = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
         const currentPublicInboxFlag = publicToggleCheckbox.checked;
@@ -621,14 +565,14 @@
                 publicInbox: currentPublicInboxFlag,
                 selectedBadges: currentCheckedBadges
             });
-            statusDiv.innerText = '設定を保存しました✨';
+            statusDiv.innerText = '設定を保存しました！';
             setTimeout(() => { statusDiv.innerText = ''; }, 3000);
             
-            // 自分（管理者）画面を再描画（管理画面は常に全表示モード）
+            // 管理室画面を再描画（常に全表示）
             renderOdai(savedUser, true, currentPublicInboxFlag);
         } catch (e) {
             console.error(e);
-            statusDiv.innerText = '保存に失敗しました。';
+            statusDiv.innerText = '設定の保存に失敗しました。';
         } finally {
             saveSettingsBtn.disabled = false;
         }
@@ -639,7 +583,7 @@
         if (!text) return;
         if (hpEmailField.value) {
             odaiInput.value = '';
-            statusDiv.innerText = 'メッセージを送信しました📮';
+            statusDiv.innerText = `@${targetBoxId} さんにお題を送信しました`;
             return;
         }
         const senderName = senderNameInput.value.trim() || "匿名さん";
@@ -657,7 +601,7 @@
 
             odaiInput.value = '';
             senderNameInput.value = '';
-            statusDiv.innerText = 'お題を送信しました📮';
+            statusDiv.innerText = `@${targetBoxId} さんにお題を送信しました`;
             setTimeout(() => { if(!sendBtn.disabled) statusDiv.innerText = ''; }, 3000);
         } catch (e) {
             console.error(e);
@@ -666,9 +610,9 @@
     });
 
     async function showLoggedIn(username) {
-        profileCard.classList.remove('hidden');
         loggedInZone.classList.remove('hidden');
-        pageOwnerDisplay.innerText = `@${username} の管理室`;
+        pageOwnerDisplay.innerText = `@${username} の管理画面`;
+        pageOwnerDisplay.classList.remove('hidden');
         customBadgeDisplay.classList.add('hidden'); 
         
         loadScratchAvatar(username);
@@ -713,17 +657,16 @@
             updateSettingsBadgePreview(username, checkedTypes);
         } else {
             badgeSelectWrapper.classList.add('hidden');
-            settingsBadgeContainer.innerHTML = `<span style="font-size:12px;color:var(--text-sub);">一般会員</span>`;
+            settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（一般ユーザー）</span>`;
         }
 
-        // 管理画面は、本人の公開設定に関わらず常に全表示モードで描写
         renderOdai(username, true, firebaseSettings.publicInbox !== false);
     }
 
     async function showSendPage(ownerName) {
-        profileCard.classList.remove('hidden');
-        sendZone.classList.remove('hidden');
         pageOwnerDisplay.innerText = `@${ownerName} のお題箱`;
+        pageOwnerDisplay.classList.remove('hidden');
+        sendZone.classList.remove('hidden');
         loadScratchAvatar(ownerName);
         
         const lowerOwner = ownerName.toLowerCase();
@@ -749,30 +692,27 @@
 
         if (hasAnyBadge) customBadgeDisplay.classList.remove('hidden');
 
-        // 一般画面は、設定されている公開フラグに基づいて描画
         const isInboxPublic = ownerSettings.publicInbox !== false;
         renderOdai(ownerName, false, isInboxPublic);
     }
 
-    // 📜 タイムライン描画（公開設定・管理者フラグを完全に処理）
     async function renderOdai(username, isAdminView, isInboxPublic) {
         odaiListDiv.innerHTML = '';
-        inboxTitleText.innerText = isAdminView ? "受信したお題一覧" : (isInboxPublic ? "みんなのお題 & Q&A" : "回答済みのQ&A");
+        inboxTitleText.innerText = isAdminView ? "受信したお題一覧" : (isInboxPublic ? "Inbox / Q&A" : "回答済みのQ&A");
 
         try {
             const snapshot = await get(ref(db, `odais/${username.toLowerCase()}`));
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                const keys = Object.keys(data).reverse(); // 最新を上に
+                const keys = Object.keys(data).reverse();
                 let visibleCount = 0;
 
                 keys.forEach(id => {
                     const item = data[id];
                     
-                    /* 🔒 一般ユーザー（他人）が見る場合のフィルタリングルール */
+                    // 管理画面ではない一般公開画面の時、かつ非公開モードで、回答が空なら表示をスキップ
                     if (!isAdminView) {
                         if (!isInboxPublic && !item.answer) {
-                            // 受信箱非公開、かつ回答もまだ無い場合は絶対に他人に見せない
                             return;
                         }
                     }
@@ -792,7 +732,6 @@
                     div.appendChild(senderDiv);
                     div.appendChild(contentDiv);
 
-                    // 🎓 回答の表示
                     if (item.answer) {
                         const ansBox = document.createElement('div');
                         ansBox.className = 'answer-box';
@@ -800,10 +739,10 @@
                         div.appendChild(ansBox);
                     }
 
-                    // ⚙️ 管理者専用：インライン回答フォーム
                     if (isAdminView) {
                         const replyForm = document.createElement('div');
-                        
+                        replyForm.style.marginTop = "10px";
+
                         const replyInput = document.createElement('textarea');
                         replyInput.className = 'answer-textarea';
                         replyInput.placeholder = item.answer ? '回答を修正する...' : '回答を入力してQ&Aとして公開...';
@@ -817,18 +756,16 @@
                             replyBtn.disabled = true;
                             const newAnswerText = replyInput.value.trim();
                             
-                            // 💡 Firebaseルール対策: `set()`で丸ごと上書きするのではなく、`update()`でanswerキーだけをピンポイント更新！
+                            // 💡 update()メソッドを用いて、このお題ID配下の `answer` フィールドのみをピンポイント更新
                             const updates = {};
                             updates[`/odais/${username.toLowerCase()}/${id}/answer`] = newAnswerText;
 
                             try {
                                 await update(ref(db), updates);
-                                statusDiv.innerText = "回答を反映しました！";
-                                setTimeout(() => { statusDiv.innerText = ''; }, 2000);
                                 renderOdai(username, true, isInboxPublic); 
                             } catch(err) {
-                                console.error("Firebase保存エラー:", err);
-                                alert("回答の送信に失敗しました。FirebaseのSecurity Rulesで書き込み許可(write)が通っているか確認してください。");
+                                console.error(err);
+                                alert("回答の送信に失敗しました。FirebaseのSecurity Rulesを確認してください。");
                             } finally {
                                 replyBtn.disabled = false;
                             }
@@ -842,16 +779,15 @@
                     odaiListDiv.appendChild(div);
                 });
 
-                // カラムの左右表示・中央揃えのトグル
+                // 表示対象のお題が1件以上あれば2カラム、ゼロなら左カラムを中央寄せ
                 if (visibleCount > 0) {
                     odaiListSection.classList.remove('hidden');
-                    mainLayoutWrapper.className = "main-layout"; // 2カラム化
+                    mainLayoutWrapper.className = "main-layout";
                 } else {
                     odaiListSection.classList.add('hidden');
-                    mainLayoutWrapper.className = "main-layout center-mode"; // お題がゼロなら中央へ
+                    mainLayoutWrapper.className = "main-layout center-mode";
                 }
             } else {
-                // データが一件も存在しない場合
                 odaiListSection.classList.add('hidden');
                 mainLayoutWrapper.className = "main-layout center-mode";
             }
