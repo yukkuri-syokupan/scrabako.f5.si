@@ -41,7 +41,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* 🐱 Scratchアバターのスタイル */
         .scratch-avatar {
             width: 65px;
             height: 65px;
@@ -60,9 +59,8 @@
             text-align: center;
         }
 
-        /* 🖼️ カスタムバッチ画像 */
         .custom-badge-block {
-            width: 20px;
+            width: auto;
             height: 20px;
             object-fit: contain;
             margin: 0 auto 25px auto;
@@ -154,6 +152,7 @@
             justify-content: space-between;
             padding-top: 15px;
             border-top: 1px solid var(--border-color);
+            margin-top: 15px;
         }
         .badge-preview-area {
             display: flex;
@@ -162,8 +161,8 @@
             font-weight: 600;
         }
         .settings-badge-img {
-            width: 24px;
-            height: 24px;
+            height: 20px;
+            width: auto;
             object-fit: contain;
         }
         .no-badge-text {
@@ -188,6 +187,26 @@
             height: 16px;
             margin: 0;
         }
+
+        /* 🔽 セレクトボックスのスタイル */
+        .select-container {
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .select-container select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+            cursor: pointer;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -195,9 +214,7 @@
 <div class="container">
     <h1>Scrabako</h1>
     
-    <!-- 🐱 自動取得されるアイコン画像 -->
     <img id="scratch-avatar-display" class="scratch-avatar hidden" src="" alt="Avatar">
-    
     <div id="page-owner-display" class="page-owner hidden"></div>
     <img id="custom-badge-display" class="custom-badge-block hidden" src="" alt="Badge">
         
@@ -231,13 +248,15 @@
         <!-- ⚙️ アカウント設定カード -->
         <div class="info-card">
             <strong>⚙️ アカウント設定</strong>
-            <p>バッチや公開範囲の切り替え、ログアウトが行えます。</p>
+            <p>表示するバッチの選択、公開範囲の切り替え、ログアウトが行えます。</p>
             
-            <!-- バッチ表示のオンオフ -->
-            <label class="checkbox-container">
-                <input type="checkbox" id="badge-toggle-checkbox" checked>
-                <span>他の人にお題箱でこのバッチを表示する</span>
-            </label>
+            <!-- 🔽 バッチ選択ドロップダウンメニュー -->
+            <div id="badge-select-wrapper" class="select-container hidden">
+                <label for="badge-selector">表示するバッチを選択:</label>
+                <select id="badge-selector">
+                    <!-- JSで動的に所持バッチを追加します -->
+                </select>
+            </div>
 
             <!-- 🔓 お題公開のオンオフ -->
             <label class="checkbox-container">
@@ -254,7 +273,7 @@
             </div>
         </div>
 
-        <!-- 受信箱（管理画面では設定に関わらず常に自分だけは見られます） -->
+        <!-- 受信箱 -->
         <div id="odai-list-section" class="hidden">
             <div class="inbox-title">Inbox (受信箱)</div>
             <div id="odai-list"></div>
@@ -306,30 +325,17 @@
     const myBoxUrlSpan = document.getElementById('my-box-url');
     const customBadgeDisplay = document.getElementById('custom-badge-display');
     const settingsBadgeContainer = document.getElementById('settings-badge-container');
-    const badgeToggleCheckbox = document.getElementById('badge-toggle-checkbox');
     const publicToggleCheckbox = document.getElementById('public-toggle-checkbox');
     const scratchAvatarDisplay = document.getElementById('scratch-avatar-display');
+    const badgeSelectWrapper = document.getElementById('badge-select-wrapper');
+    const badgeSelector = document.getElementById('badge-selector');
 
-    // 🐱 ScratchアバターURLをユーザー名から組み立ててセットする
+    // 🐱 ScratchアバターをAPIから自動取得
     function loadScratchAvatar(username) {
         if (!username) {
             scratchAvatarDisplay.classList.add('hidden');
             return;
         }
-        // 引数をもとに直接画像パスを読み込む（存在しない架空のユーザー名等の場合はScratchの標準バッジ等にフォールバックされます）
-        scratchAvatarDisplay.src = `https://cdn2.scratch.mit.edu/get_image/user/default_90x90.png`; // 一時初期化
-        
-        // Scratchのプロフィール画像は通常API経由で取得するか、特定URL形式。ここでは確実なcnd2直リンクを使用するためにまずは暫定で試行
-        // 最も確実な方法はユーザー名指定ではなく内部IDが必要ですが、一般的には `https://uploads.scratch.mit.edu/users/avatars/` または `cdn2` が使われます。
-        // ここでは、ユーザー名だけで動的に特定できるよう画像読込失敗時のエラーハンドリングも兼ねて設定します。
-        // ※Scratchの仕様上、名前だけで直接画像パスを抜くのが難しいため、Scratch APIプレースホルダー的な挙動を行います。
-        // 今回はユーザーが提示した cdn2 の規則「user/ID_90x90.png」を利用したいですが、IDが不確定なため、
-        // 一般的なScratchのアイコン表示手法（https://scratch.mit.edu/users/ユーザー名 のアバター）をエミュレート、またはシンプルな非同期フェッチを行います。
-        
-        // より確実に「ユーザー名のみ」でアイコン画像を引っ張るため、Scratch公式の一般公開エンドポイントURLを設定します
-        scratchAvatarDisplay.src = `https://cdn2.scratch.mit.edu/get_image/user/0_90x90.png`; // デフォルト
-        
-        // ユーザー名からScratchAPIを一度非同期で叩き、画像URLを展開します
         fetch(`https://api.scratch.mit.edu/users/${username}`)
             .then(res => res.json())
             .then(data => {
@@ -343,21 +349,22 @@
             });
     }
 
-    function getBadgeUrl(username) {
-        if (!username) return "";
+    // 🕵️ ユーザーが持っている「すべてのバッチリスト」を取得する
+    function getUserAvailableBadges(username) {
+        const list = [];
+        if (!username) return list;
         const lowerName = username.toLowerCase();
 
-        const adminKey = Object.keys(BADGE_CONFIG.admins || {}).find(k => k.toLowerCase() === lowerName);
-        if (adminKey && BADGE_CONFIG.admins[adminKey]) {
-            return BADGE_CONFIG.admins[adminKey];
+        // configのすべてのカテゴリー(blue, gold, gray, admin等)をループ
+        for (const type in BADGE_CONFIG) {
+            if (BADGE_CONFIG[type] && BADGE_CONFIG[type][lowerName]) {
+                list.push({
+                    type: type, // 'blue', 'gold' など
+                    url: BADGE_CONFIG[type][lowerName]
+                });
+            }
         }
-
-        const verifiedKey = Object.keys(BADGE_CONFIG.verified || {}).find(k => k.toLowerCase() === lowerName);
-        if (verifiedKey && BADGE_CONFIG.verified[verifiedKey]) {
-            return BADGE_CONFIG.verified[verifiedKey];
-        }
-
-        return "";
+        return list;
     }
 
     function checkCooldown() {
@@ -374,7 +381,6 @@
     function startCooldownTimer(seconds) {
         sendBtn.disabled = true;
         let currentSeconds = seconds;
-        
         const interval = setInterval(() => {
             currentSeconds--;
             if (currentSeconds <= 0) {
@@ -447,13 +453,6 @@
         window.location.href = '?';
     });
 
-    badgeToggleCheckbox.addEventListener('change', () => {
-        const savedUser = localStorage.getItem('scratch_username');
-        if (savedUser) {
-            localStorage.setItem(`show_badge_${savedUser.toLowerCase()}`, badgeToggleCheckbox.checked ? "true" : "false");
-        }
-    });
-
     // 🔓 お題公開設定の変更イベント
     publicToggleCheckbox.addEventListener('change', () => {
         const savedUser = localStorage.getItem('scratch_username');
@@ -461,6 +460,33 @@
             localStorage.setItem(`public_inbox_${savedUser.toLowerCase()}`, publicToggleCheckbox.checked ? "true" : "false");
         }
     });
+
+    // 🔽 セレクトボックスが切り替わったら選択されたバッチを保存＆プレビュー反映
+    badgeSelector.addEventListener('change', () => {
+        const savedUser = localStorage.getItem('scratch_username');
+        if (!savedUser) return;
+
+        const selectedType = badgeSelector.value;
+        localStorage.setItem(`selected_badge_type_${savedUser.toLowerCase()}`, selectedType);
+
+        // プレビューの即時更新
+        updateSettingsBadgePreview(savedUser, selectedType);
+    });
+
+    // 管理画面内のバッチプレビューを更新する関数
+    function updateSettingsBadgePreview(username, selectedType) {
+        if (selectedType === "none" || !selectedType) {
+            settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（非表示設定中）</span>`;
+            return;
+        }
+        const lowerName = username.toLowerCase();
+        const badgeUrl = BADGE_CONFIG[selectedType] ? BADGE_CONFIG[selectedType][lowerName] : "";
+        if (badgeUrl) {
+            settingsBadgeContainer.innerHTML = `<img src="${badgeUrl}" class="settings-badge-img" alt="Badge Preview">`;
+        } else {
+            settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし</span>`;
+        }
+    }
 
     sendBtn.addEventListener('click', async () => {
         const text = odaiInput.value.trim();
@@ -495,52 +521,77 @@
         }
     });
 
-    // 管理画面
+    // 管理画面の表示
     function showLoggedIn(username) {
         loggedInZone.classList.remove('hidden');
-        
         pageOwnerDisplay.innerText = `@${username} の管理画面`;
         pageOwnerDisplay.classList.remove('hidden');
-        
         customBadgeDisplay.classList.add('hidden');
         
-        loadScratchAvatar(username); // アバター読み込み
-        
+        loadScratchAvatar(username);
         myBoxUrlSpan.innerText = `${MY_SITE_URL}?id=${username}`;
         
-        // 設定値の復元
-        badgeToggleCheckbox.checked = localStorage.getItem(`show_badge_${username.toLowerCase()}`) !== "false";
         publicToggleCheckbox.checked = localStorage.getItem(`public_inbox_${username.toLowerCase()}`) !== "false";
         
-        const badgeUrl = getBadgeUrl(username);
-        if (badgeUrl) {
-            settingsBadgeContainer.innerHTML = `<img src="${badgeUrl}" class="settings-badge-img" alt="Badge Preview">`;
+        // ユーザーが所持しているバッチ一覧を分析してドロップダウンを生成
+        const availableBadges = getUserAvailableBadges(username);
+        
+        if (availableBadges.length > 0) {
+            badgeSelectWrapper.classList.remove('hidden');
+            badgeSelector.innerHTML = '<option value="none">非表示にする</option>';
+            
+            availableBadges.forEach(b => {
+                const option = document.createElement('option');
+                option.value = b.type;
+                option.innerText = `バッチを表示する (${b.type})`;
+                badgeSelector.appendChild(option);
+            });
+
+            // 過去に選択保存したタイプ、なければ最初のバッチをデフォルトにする
+            let savedType = localStorage.getItem(`selected_badge_type_${username.toLowerCase()}`);
+            if (!savedType) {
+                savedType = availableBadges[0].type;
+                localStorage.setItem(`selected_badge_type_${username.toLowerCase()}`, savedType);
+            }
+            badgeSelector.value = savedType;
+            updateSettingsBadgePreview(username, savedType);
         } else {
+            badgeSelectWrapper.classList.add('hidden');
             settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（一般ユーザー）</span>`;
         }
 
-        renderOdai(username, true); // 管理画面では必ず一覧を全表示する
+        renderOdai(username, true);
     }
 
-    // お題送信画面
+    // お題送信画面の表示
     function showSendPage(ownerName) {
         pageOwnerDisplay.innerText = `@${ownerName} のお題箱`;
         pageOwnerDisplay.classList.remove('hidden');
         sendZone.classList.remove('hidden');
         
-        loadScratchAvatar(ownerName); // アバター読み込み
+        loadScratchAvatar(ownerName);
         
-        const isBadgeVisible = localStorage.getItem(`show_badge_${ownerName.toLowerCase()}`) !== "false";
-        const badgeUrl = getBadgeUrl(ownerName);
+        // 相手が選択しているバッチタイプを引っ張る
+        const selectedType = localStorage.getItem(`selected_badge_type_${ownerName.toLowerCase()}`);
+        const lowerOwner = ownerName.toLowerCase();
+        
+        let badgeUrl = "";
+        // 明示的に none でなく、かつ config にデータがあれば表示
+        if (selectedType && selectedType !== "none") {
+            badgeUrl = BADGE_CONFIG[selectedType] ? BADGE_CONFIG[selectedType][lowerOwner] : "";
+        } else if (!selectedType) {
+            // 初めて開かれた時など設定がない場合は、最初に見つかったバッチを予備表示
+            const available = getUserAvailableBadges(ownerName);
+            if (available.length > 0) badgeUrl = available[0].url;
+        }
 
-        if (badgeUrl && isBadgeVisible) {
+        if (badgeUrl) {
             customBadgeDisplay.src = badgeUrl;
             customBadgeDisplay.classList.remove('hidden');
         } else {
             customBadgeDisplay.classList.add('hidden');
         }
 
-        // 🔓 お題公開設定に応じて他人の画面にInboxをレンダリングするか決定
         const isInboxPublic = localStorage.getItem(`public_inbox_${ownerName.toLowerCase()}`) !== "false";
         if (isInboxPublic) {
             renderOdai(ownerName, false);
