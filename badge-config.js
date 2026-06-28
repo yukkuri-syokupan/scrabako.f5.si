@@ -22,9 +22,8 @@ export const BADGE_CONFIG = {
         "yukkuri_syokupan": "https://yt-syokupan.f5.si/scratch/images/admin-text.png"
     },
     
-    2026summer: {
+    "2026summer": {
         "yukkuri_syokupan": "https://scrabako.f5.si/images/2026summer.png",
         "scrabako": "https://scrabako.f5.si/images/2026summer.png"
     }
-    
 };
