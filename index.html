@@ -100,6 +100,17 @@
         }
         button.outline:hover { background: #fff5f5; border-color: #ff4757; opacity: 1; }
         
+        /* 💾 設定保存ボタン専用スタイル */
+        button.primary-save {
+            background: #2ed573;
+            border-color: #2ed573;
+            color: #fff;
+            padding: 12px 24px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        button.primary-save:hover { background: #26af5f; border-color: #26af5f; }
+
         .name-input {
             width: 100%;
             padding: 12px 15px;
@@ -131,7 +142,7 @@
         textarea:focus { border-color: var(--text-color); }
 
         .notice { font-size: 12px; color: var(--sub-color); margin-top: 30px; line-height: 1.5; }
-        .status { margin-top: 20px; font-size: 13px; color: var(--text-color); min-height: 1.5em; }
+        .status { margin-top: 20px; font-size: 13px; color: var(--text-color); min-height: 1.5em; font-weight: 600; }
         .hidden { display: none !important; }
         .hp-trap { position: absolute; overflow: hidden; clip: rect(0 0 0 0); height: 1px; width: 1px; margin: -1px; padding: 0; border: 0; }
         
@@ -207,21 +218,44 @@
         .badge-selector-title {
             font-size: 13px;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: var(--text-color);
         }
-        .badge-checkbox-item {
+        .badge-checkbox-flex-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 8px;
-            margin-bottom: 6px;
+        }
+        .badge-checkbox-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             cursor: pointer;
-            font-size: 12px;
+            background: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            width: fit-content;
+            transition: background 0.2s;
+        }
+        .badge-checkbox-item:hover {
+            background: #f1f1f1;
         }
         .badge-checkbox-item input {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
+            margin: 0;
+        }
+        .badge-checkbox-item img {
+            height: 18px;
+            width: auto;
+            object-fit: contain;
+        }
+        .badge-checkbox-item span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--sub-color);
         }
     </style>
 </head>
@@ -261,17 +295,19 @@
 
         <div class="info-card">
             <strong>⚙️ アカウント設定</strong>
-            <p>表示するバッチの複数選択、公開範囲の切り替え、ログアウトが行えます。</p>
+            <p>表示するバッチの選択、公開範囲の切り替え、ログアウトが行えます。</p>
             
             <div id="badge-select-wrapper" class="badge-selector-group hidden">
                 <div class="badge-selector-title">表示するバッチを選択（複数可）:</div>
-                <div id="badge-checkboxes-container"></div>
+                <div id="badge-checkboxes-container" class="badge-checkbox-flex-container"></div>
             </div>
 
             <label class="checkbox-container">
                 <input type="checkbox" id="public-toggle-checkbox" checked>
                 <span>届いたお題を他人に公開する（Inboxの表示）</span>
             </label>
+
+            <button id="save-settings-btn" class="primary-save">設定を保存する</button>
 
             <div class="settings-row">
                 <div class="badge-preview-area">
@@ -319,6 +355,7 @@
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const sendBtn = document.getElementById('send-btn');
+    const saveSettingsBtn = document.getElementById('save-settings-btn'); // 🌟 追加
     const odaiInput = document.getElementById('odai-input');
     const senderNameInput = document.getElementById('sender-name-input');
     const hpEmailField = document.getElementById('hp-email-field');
@@ -458,20 +495,7 @@
         window.location.href = '?';
     });
 
-    // 🔓 お題公開設定の変更イベント (Firebaseに直接保存)
-    publicToggleCheckbox.addEventListener('change', async () => {
-        const savedUser = localStorage.getItem('scratch_username');
-        if (savedUser) {
-            const lowerUser = savedUser.toLowerCase();
-            try {
-                await set(ref(db, `settings/${lowerUser}/publicInbox`), publicToggleCheckbox.checked);
-            } catch (e) {
-                console.error("設定の保存に失敗:", e);
-            }
-        }
-    });
-
-    // ⚙️ 管理画面用の複数バッチプレビュー更新関数 (Firebaseから読んだデータを即時反映)
+    // ⚙️ 画面上の現在のプレビュー用バッチ表示を更新するだけの関数（Firebase通信はしない）
     function updateSettingsBadgePreview(username, checkedTypes) {
         const savedUser = username.toLowerCase();
         if (!checkedTypes || checkedTypes.length === 0) {
@@ -489,15 +513,35 @@
         settingsBadgeContainer.innerHTML = html || `<span class="no-badge-text">なし</span>`;
     }
 
-    // 💾 Firebaseへバッチ選択配列を書き込む関数
-    async function saveBadgesToFirebase(username, checkedTypes) {
-        const lowerUser = username.toLowerCase();
+    // 💾 ［設定を保存する］ボタンが押された時の処理
+    saveSettingsBtn.addEventListener('click', async () => {
+        const savedUser = localStorage.getItem('scratch_username');
+        if (!savedUser) return;
+        
+        const lowerUser = savedUser.toLowerCase();
+        saveSettingsBtn.disabled = true;
+        statusDiv.innerText = '設定を保存中...';
+
+        // 画面上のチェックボックス群から現在オンになっている値を集める
+        const currentCheckedBadges = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
+        const currentPublicInboxFlag = publicToggleCheckbox.checked;
+
         try {
-            await set(ref(db, `settings/${lowerUser}/selectedBadges`), checkedTypes);
+            // Firebase Realtime Databaseへまとめてセット
+            await set(ref(db, `settings/${lowerUser}`), {
+                publicInbox: currentPublicInboxFlag,
+                selectedBadges: currentCheckedBadges
+            });
+
+            statusDiv.innerText = '設定を保存しました！';
+            setTimeout(() => { statusDiv.innerText = ''; }, 3000);
         } catch (e) {
-            console.error("Firebaseへのバッチ保存に失敗しました:", e);
+            console.error("Firebaseへの保存失敗:", e);
+            statusDiv.innerText = '設定の保存に失敗しました。';
+        } finally {
+            saveSettingsBtn.disabled = false;
         }
-    }
+    });
 
     sendBtn.addEventListener('click', async () => {
         const text = odaiInput.value.trim();
@@ -532,7 +576,7 @@
         }
     });
 
-    // 管理画面の表示
+    // ⚙️ 管理画面の表示
     async function showLoggedIn(username) {
         loggedInZone.classList.remove('hidden');
         pageOwnerDisplay.innerText = `@${username} の管理画面`;
@@ -544,7 +588,6 @@
         
         const lowerUser = username.toLowerCase();
 
-        // 📥 Firebaseからユーザー設定（公開フラグと選択バッチ）を取得
         let firebaseSettings = { publicInbox: true, selectedBadges: null };
         try {
             const snapshot = await get(ref(db, `settings/${lowerUser}`));
@@ -563,14 +606,9 @@
             badgeSelectWrapper.classList.remove('hidden');
             badgeCheckboxesContainer.innerHTML = '';
 
-            // Firebaseにデータがなければ所持バッチを全部初期値として適用
             let checkedTypes = Array.isArray(firebaseSettings.selectedBadges) 
                 ? firebaseSettings.selectedBadges 
-                : availableBadges.map(b => b.type);
-            
-            if (!Array.isArray(firebaseSettings.selectedBadges)) {
-                await saveBadgesToFirebase(username, checkedTypes);
-            }
+                : [];
 
             availableBadges.forEach(b => {
                 const label = document.createElement('label');
@@ -581,16 +619,21 @@
                 checkbox.value = b.type;
                 checkbox.checked = checkedTypes.includes(b.type);
 
-                checkbox.addEventListener('change', async () => {
-                    const currentChecked = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
-                    await saveBadgesToFirebase(username, currentChecked);
-                    updateSettingsBadgePreview(username, currentChecked);
-                });
+                const img = document.createElement('img');
+                img.src = b.url;
+                img.alt = b.type;
 
                 const txt = document.createElement('span');
-                txt.innerText = `${b.type} バッチを表示する`;
+                txt.innerText = `(${b.type})`;
+
+                // 🌟 チェックをいじるたびにプレビューだけを即時反映（Firebase通信はしない）
+                checkbox.addEventListener('change', () => {
+                    const tempChecked = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
+                    updateSettingsBadgePreview(username, tempChecked);
+                });
 
                 label.appendChild(checkbox);
+                label.appendChild(img);
                 label.appendChild(txt);
                 badgeCheckboxesContainer.appendChild(label);
             });
@@ -604,7 +647,7 @@
         renderOdai(username, true);
     }
 
-    // お題送信画面の表示 (外部ユーザーが見る画面)
+    // 🔓 お題送信画面の表示 (外部ユーザー向け)
     async function showSendPage(ownerName) {
         pageOwnerDisplay.innerText = `@${ownerName} のお題箱`;
         pageOwnerDisplay.classList.remove('hidden');
@@ -614,7 +657,6 @@
         
         const lowerOwner = ownerName.toLowerCase();
 
-        // 📥 Firebaseから箱の持ち主の設定情報を完全に同期ロード
         let ownerSettings = { publicInbox: true, selectedBadges: null };
         try {
             const snapshot = await get(ref(db, `settings/${lowerOwner}`));
@@ -625,13 +667,7 @@
             console.error("持ち主の設定データの取得に失敗:", e);
         }
         
-        let checkedTypes = [];
-        if (Array.isArray(ownerSettings.selectedBadges)) {
-            checkedTypes = ownerSettings.selectedBadges;
-        } else {
-            // Firebaseに設定データが全く作られていない初期状態の時は、持っている全バッチを表示
-            checkedTypes = getUserAvailableBadges(ownerName).map(b => b.type);
-        }
+        let checkedTypes = Array.isArray(ownerSettings.selectedBadges) ? ownerSettings.selectedBadges : [];
 
         customBadgeDisplay.innerHTML = '';
         let hasAnyBadge = false;
@@ -653,7 +689,6 @@
             customBadgeDisplay.classList.add('hidden');
         }
 
-        // 🔓 公開・非公開設定を完全に同期
         const isInboxPublic = ownerSettings.publicInbox !== false;
         if (isInboxPublic) {
             renderOdai(ownerName, false);
