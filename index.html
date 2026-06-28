@@ -289,7 +289,6 @@
         .badge-checkbox-item img { height: 18px; width: auto; object-fit: contain; }
         .badge-checkbox-item span { font-size: 12px; font-weight: 600; color: var(--sub-color); }
 
-        /* 📄 規約ページ用の専用追加スタイル */
         .policy-card {
             background: var(--card-bg);
             padding: 35px;
@@ -305,6 +304,93 @@
         .footer-links a { color: var(--sub-color); text-decoration: none; margin: 0 10px; font-weight: 600; }
         .footer-links a:hover { color: var(--text-color); }
 
+        /* 📌 カスタムモーダル（同意ポップアップ）の追加スタイル */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(4px); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .modal-content {
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .modal-content h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        .modal-content p {
+            font-size: 13.5px;
+            color: var(--sub-color);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .modal-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .modal-links a {
+            font-size: 13px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .modal-links a:hover {
+            text-decoration: underline;
+        }
+        .modal-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 25px;
+            user-select: none;
+        }
+        .modal-checkbox-label input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn-cancel {
+            background: transparent;
+            color: var(--sub-color);
+            border: 1px solid var(--border-color);
+        }
+        .modal-btn-cancel:hover {
+            background: var(--card-bg);
+        }
+        .modal-btn-submit {
+            background: var(--text-color);
+            color: var(--bg-color);
+        }
+
         @media (max-width: 768px) {
             .main-layout { flex-direction: column; align-items: stretch; }
             .left-column { max-width: 100% !important; position: static; }
@@ -313,6 +399,28 @@
     </style>
 </head>
 <body>
+
+<div id="consent-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2>規約への同意が必要です</h2>
+        <p>Scrabakoをご利用いただくには、以下の規約への同意が必要です。リンク先をご確認の上、チェックを入れてください。</p>
+        
+        <div class="modal-links">
+            <a href="?tos" target="_blank">📄 利用規約を確認する</a>
+            <a href="?privacypolicy" target="_blank">🔒 プライバシーポリシーを確認する</a>
+        </div>
+
+        <label class="modal-checkbox-label">
+            <input type="checkbox" id="modal-agree-checkbox">
+            <span>利用規約およびプライバシーポリシーに同意します。</span>
+        </label>
+
+        <div class="modal-actions">
+            <button type="button" id="modal-cancel-btn" class="modal-btn-cancel">キャンセル</button>
+            <button type="button" id="modal-submit-btn" class="modal-btn-submit" disabled>同意してログイン</button>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <h1 id="site-main-title">Scrabako</h1>
@@ -474,7 +582,6 @@
     const targetBoxId = urlParams.get('id'); 
     const privateCode = urlParams.get('privateCode'); 
 
-    // 新規追加：規約パラメータの判定
     const isTosParam = urlParams.has('tos');
     const isPrivacyParam = urlParams.has('privacypolicy');
 
@@ -502,6 +609,12 @@
     const scratchAvatarDisplay = document.getElementById('scratch-avatar-display');
     const badgeSelectWrapper = document.getElementById('badge-select-wrapper');
     const badgeCheckboxesContainer = document.getElementById('badge-checkboxes-container');
+
+    // 🎛️ モーダル関係のエレメント
+    const consentModal = document.getElementById('consent-modal');
+    const modalAgreeCheckbox = document.getElementById('modal-agree-checkbox');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+    const modalSubmitBtn = document.getElementById('modal-submit-btn');
 
     function formatTime(timestamp) {
         if (!timestamp) return "";
@@ -566,21 +679,20 @@
         }, 1000);
     }
 
-    // 🚀 エントリーポイント（URLパラメータによる条件分岐を最上部に設置）
     window.addEventListener('DOMContentLoaded', async () => {
         
-        // ⚖️ 利用規約モードの判定
+        // 📄 規約パラメータのルーティング
         if (isTosParam || isPrivacyParam) {
-            mainLayoutWrapper.className = "hidden"; // お題箱を丸ごと非表示
-            document.getElementById('site-main-title').classList.add('hidden'); // タイトル隠す
-            document.getElementById('policy-layout-wrapper').classList.remove('hidden'); // 規約ラッパー表示
+            mainLayoutWrapper.className = "hidden"; 
+            document.getElementById('site-main-title').classList.add('hidden'); 
+            document.getElementById('policy-layout-wrapper').classList.remove('hidden'); 
             
             if (isTosParam) {
                 document.getElementById('tos-content-block').classList.remove('hidden');
             } else {
                 document.getElementById('privacy-content-block').classList.remove('hidden');
             }
-            return; // データベース処理をスキップして終了
+            return; 
         }
 
         const savedUser = localStorage.getItem('scratch_username');
@@ -624,7 +736,23 @@
         }
     });
 
+    // 🎛️ モーダルポップアップ制御イベント群
     loginBtn.addEventListener('click', () => {
+        modalAgreeCheckbox.checked = false; 
+        modalSubmitBtn.disabled = true;
+        consentModal.classList.remove('hidden');
+    });
+
+    modalCancelBtn.addEventListener('click', () => {
+        consentModal.classList.add('hidden');
+    });
+
+    modalAgreeCheckbox.addEventListener('change', () => {
+        modalSubmitBtn.disabled = !modalAgreeCheckbox.checked;
+    });
+
+    modalSubmitBtn.addEventListener('click', () => {
+        consentModal.classList.add('hidden');
         statusDiv.innerText = '接続中...';
         const appName = encodeURIComponent("Scrabako");
         const redirectUrlWithParam = window.location.href;
