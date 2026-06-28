@@ -59,6 +59,7 @@
             text-align: center;
         }
 
+        /* 複数バッチ横並び用コンテナ */
         .badge-display-container {
             display: flex;
             justify-content: center;
@@ -210,6 +211,7 @@
             margin: 0;
         }
 
+        /* 🗳️ バッチ設定リストUI（画像の横にチェックボックス） */
         .badge-selector-group {
             margin-bottom: 15px;
             padding: 10px 0;
@@ -355,7 +357,7 @@
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const sendBtn = document.getElementById('send-btn');
-    const saveSettingsBtn = document.getElementById('save-settings-btn'); // 🌟 追加
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
     const odaiInput = document.getElementById('odai-input');
     const senderNameInput = document.getElementById('sender-name-input');
     const hpEmailField = document.getElementById('hp-email-field');
@@ -375,12 +377,13 @@
     const badgeSelectWrapper = document.getElementById('badge-select-wrapper');
     const badgeCheckboxesContainer = document.getElementById('badge-checkboxes-container');
 
+    // 🌐 外部PHPプロキシ経由でScratchユーザーデータを取得（CORS対応版）
     function loadScratchAvatar(username) {
         if (!username) {
             scratchAvatarDisplay.classList.add('hidden');
             return;
         }
-        fetch(`https://api.scratch.mit.edu/users/${username}`)
+        fetch(`https://testdev.f5.si/scratch-api.php?user=${encodeURIComponent(username)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.profile && data.profile.images && data.profile.images['90x90']) {
@@ -513,7 +516,7 @@
         settingsBadgeContainer.innerHTML = html || `<span class="no-badge-text">なし</span>`;
     }
 
-    // 💾 ［設定を保存する］ボタンが押された時の処理
+    // 💾 ［設定を保存する］ボタンが押された時の一括保存処理
     saveSettingsBtn.addEventListener('click', async () => {
         const savedUser = localStorage.getItem('scratch_username');
         if (!savedUser) return;
@@ -522,12 +525,10 @@
         saveSettingsBtn.disabled = true;
         statusDiv.innerText = '設定を保存中...';
 
-        // 画面上のチェックボックス群から現在オンになっている値を集める
         const currentCheckedBadges = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
         const currentPublicInboxFlag = publicToggleCheckbox.checked;
 
         try {
-            // Firebase Realtime Databaseへまとめてセット
             await set(ref(db, `settings/${lowerUser}`), {
                 publicInbox: currentPublicInboxFlag,
                 selectedBadges: currentCheckedBadges
@@ -610,6 +611,7 @@
                 ? firebaseSettings.selectedBadges 
                 : [];
 
+            // 🗳️ [チェックボックス] [実際のバッチ画像] [カテゴリ名] をループ生成
             availableBadges.forEach(b => {
                 const label = document.createElement('label');
                 label.className = 'badge-checkbox-item';
@@ -626,7 +628,7 @@
                 const txt = document.createElement('span');
                 txt.innerText = `(${b.type})`;
 
-                // 🌟 チェックをいじるたびにプレビューだけを即時反映（Firebase通信はしない）
+                // 切り替え時はプレビューだけを即時反映（保存ボタンで通信するため）
                 checkbox.addEventListener('change', () => {
                     const tempChecked = Array.from(badgeCheckboxesContainer.querySelectorAll('input:checked')).map(el => el.value);
                     updateSettingsBadgePreview(username, tempChecked);
