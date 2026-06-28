@@ -211,7 +211,6 @@
         .odai-item { text-align: left; padding: 25px 0; font-size: 15px; line-height: 1.6; border-bottom: 1px solid var(--border-color); }
         .odai-item:first-child { padding-top: 0; }
         
-        /* 🕒 メタ情報表示（Fromと時間） */
         .odai-meta-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .odai-sender { font-size: 11px; color: var(--sub-color); font-weight: 600; }
         .odai-time { font-size: 10px; color: var(--sub-color); font-weight: 400; }
@@ -290,6 +289,22 @@
         .badge-checkbox-item img { height: 18px; width: auto; object-fit: contain; }
         .badge-checkbox-item span { font-size: 12px; font-weight: 600; color: var(--sub-color); }
 
+        /* 📄 規約ページ用の専用追加スタイル */
+        .policy-card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+            margin-top: 10px;
+        }
+        .policy-card h2 { font-size: 16px; font-weight: 700; margin-top: 25px; margin-bottom: 8px; border-bottom: 1px dashed var(--text-color); padding-bottom: 4px; }
+        .policy-card p, .policy-card li { font-size: 13.5px; color: #333; line-height: 1.7; margin-bottom: 10px; }
+        .policy-card ol, .policy-card ul { padding-left: 20px; margin: 10px 0; }
+        .footer-links { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 12px; }
+        .footer-links a { color: var(--sub-color); text-decoration: none; margin: 0 10px; font-weight: 600; }
+        .footer-links a:hover { color: var(--text-color); }
+
         @media (max-width: 768px) {
             .main-layout { flex-direction: column; align-items: stretch; }
             .left-column { max-width: 100% !important; position: static; }
@@ -300,7 +315,7 @@
 <body>
 
 <div class="container">
-    <h1>Scrabako</h1>
+    <h1 id="site-main-title">Scrabako</h1>
     
     <div id="main-layout-wrapper" class="main-layout center-mode">
         
@@ -366,8 +381,72 @@
                 <div id="odai-list"></div>
             </div>
         </div>
-
     </div>
+
+    <div id="policy-layout-wrapper" class="hidden" style="max-width: 700px; margin: 0 auto;">
+        <div class="policy-card">
+            
+            <div id="tos-content-block" class="hidden">
+                <h3 style="font-size: 20px; margin-top:0; font-weight:700;">利用規約</h3>
+                <p>本規約は、当サイト上で提供するお題箱サービス（以下、「本サービス」といいます）の利用条件を定めるものです。ユーザーの皆様は、本規約に同意して本サービスを利用するものとします。</p>
+                
+                <h2>第1条（適用）</h2>
+                <p>本規約は、一般投稿者および管理画面利用者を含む、本サービスを利用するすべてのユーザーに適用されます。</p>
+                
+                <h2>第2条（禁止事項）</h2>
+                <p>ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。</p>
+                <ol>
+                    <li>法令または公序良俗に反する行為</li>
+                    <li>他のユーザーに対する誹謗中傷、嫌がらせ、脅迫、または名誉を毀損する行為</li>
+                    <li>スパム行為、自動化スクリプト等を用いた不正な大量送信行為</li>
+                    <li>本サービスの運営を妨害するおそれのある一切の行為</li>
+                </ol>
+                
+                <h2>第3条（免責事項）</h2>
+                <ol>
+                    <li>当サイトは、本サービスに起因してユーザーに生じたあらゆる損害について、一切の責任を負いません。</li>
+                    <li>当サイトは、ユーザー間で生じたトラブル（お題の文面や回答に関する紛争等）について、一切関与せず、責任を負いません。</li>
+                </ol>
+                
+                <h2>第4条（トラブルの解決と合意管轄）</h2>
+                <ol>
+                    <li>本サービスに関してユーザーと運営者との間で紛争、疑問、またはトラブルが生じた場合は、両者誠意を持って<strong>話し合い（協議）を行い、円満に解決を図るものとし、直ちに裁判手続きを行わない</strong>ものとします。</li>
+                    <li>万が一、話し合いで解決せず法的な紛争に発展した場合、あるいは法的な手続きが必要となった場合は、<strong>運営者の住所地を管轄する地方裁判所または簡易裁判所</strong>を第一審の専属的合意管轄裁判所とします。</li>
+                </ol>
+            </div>
+
+            <div id="privacy-content-block" class="hidden">
+                <h3 style="font-size: 20px; margin-top:0; font-weight:700;">プライバシーポリシー</h3>
+                <p>当サイトは、本サービスを提供するにあたり、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。</p>
+                
+                <h2>1. 個人情報の取得と利用目的</h2>
+                <p>当サイトでは、以下の情報を取得・利用します。</p>
+                <ul>
+                    <li><strong>Scratchアカウント情報（ユーザー名・アイコン）</strong>：ログイン機能およびユーザー専用のお題箱作成・管理のため。</li>
+                    <li><strong>投稿されたメッセージ・ニックネーム・タイムスタンプ</strong>：お題箱の正常な動作、および画面表示のため。</li>
+                </ul>
+                
+                <h2>2. データの管理と暗号化</h2>
+                <p>当サイトは、取得したデータを適切に管理し、不正アクセスや漏洩の防止に努めます。データはすべて暗号化通信（SSL/TLS）を介して安全にデータベースへ保存されます。</p>
+                
+                <h2>3. 第三者への開示・提供の禁止</h2>
+                <p>当サイトは、ユーザーの同意を得た場合、または法令に基づき開示を求められた場合を除き、取得した個人データを第三者に開示・提供することはありません。 </p>
+                
+                <h2>4. 免責事項</h2>
+                <p>当サイトからリンクやバナーなどによって他のサイトに移動された場合、移動先サイトで提供される情報、サービス等について一切の責任を負いません。</p>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <button type="button" onclick="location.href='?'" style="width:auto; padding: 10px 20px; background:var(--text-color); color:var(--bg-color); font-size:13px; border-radius:4px;">お題箱に戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-links" id="global-footer-links">
+        <a href="?tos">利用規約</a>
+        <a href="?privacypolicy">プライバシーポリシー</a>
+    </div>
+
 </div>
 
 <script type="module">
@@ -395,6 +474,10 @@
     const targetBoxId = urlParams.get('id'); 
     const privateCode = urlParams.get('privateCode'); 
 
+    // 新規追加：規約パラメータの判定
+    const isTosParam = urlParams.has('tos');
+    const isPrivacyParam = urlParams.has('privacypolicy');
+
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const sendBtn = document.getElementById('send-btn');
@@ -420,7 +503,6 @@
     const badgeSelectWrapper = document.getElementById('badge-select-wrapper');
     const badgeCheckboxesContainer = document.getElementById('badge-checkboxes-container');
 
-    // タイムスタンプ（UNIXミリ秒）を読みやすい日時に変換する関数
     function formatTime(timestamp) {
         if (!timestamp) return "";
         const d = new Date(timestamp);
@@ -484,7 +566,23 @@
         }, 1000);
     }
 
+    // 🚀 エントリーポイント（URLパラメータによる条件分岐を最上部に設置）
     window.addEventListener('DOMContentLoaded', async () => {
+        
+        // ⚖️ 利用規約モードの判定
+        if (isTosParam || isPrivacyParam) {
+            mainLayoutWrapper.className = "hidden"; // お題箱を丸ごと非表示
+            document.getElementById('site-main-title').classList.add('hidden'); // タイトル隠す
+            document.getElementById('policy-layout-wrapper').classList.remove('hidden'); // 規約ラッパー表示
+            
+            if (isTosParam) {
+                document.getElementById('tos-content-block').classList.remove('hidden');
+            } else {
+                document.getElementById('privacy-content-block').classList.remove('hidden');
+            }
+            return; // データベース処理をスキップして終了
+        }
+
         const savedUser = localStorage.getItem('scratch_username');
         const redirectUrlWithParam = privateCode ? MY_SITE_URL : window.location.href;
         const base64Url = btoa(encodeURIComponent(redirectUrlWithParam).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
@@ -590,7 +688,6 @@
         const senderName = senderNameInput.value.trim() || "匿名さん";
 
         try {
-            // 🕒 serverTimestamp() を付与してお題を送信
             await push(ref(db, `odais/${targetBoxId.toLowerCase()}`), {
                 sender: senderName,
                 content: text,
@@ -611,7 +708,6 @@
         }
     });
 
-    // 管理画面初期化（リアルタイムリスナー設定）
     async function initLoggedInView(username) {
         loggedInZone.classList.remove('hidden');
         pageOwnerDisplay.innerText = `@${username} の管理画面`;
@@ -623,7 +719,6 @@
         
         const lowerUser = username.toLowerCase();
 
-        // 🔄 設定情報をリアルタイムで監視
         onValue(ref(db, `settings/${lowerUser}`), (settingsSnapshot) => {
             let firebaseSettings = { publicInbox: true, selectedBadges: null };
             if (settingsSnapshot.exists()) {
@@ -665,12 +760,10 @@
                 settingsBadgeContainer.innerHTML = `<span class="no-badge-text">なし（一般ユーザー）</span>`;
             }
 
-            // 🔄 管理室画面のお題リストもリアルタイム同期へ引き継ぎ
             startOdaisListening(username, true, firebaseSettings.publicInbox !== false);
         });
     }
 
-    // 一般送信画面初期化（リアルタイムリスナー設定）
     async function initSendPageView(ownerName) {
         pageOwnerDisplay.innerText = `@${ownerName} のお題箱`;
         pageOwnerDisplay.classList.remove('hidden');
@@ -679,7 +772,6 @@
         
         const lowerOwner = ownerName.toLowerCase();
 
-        // 🔄 相手の「公開設定」をリアルタイム監視（他人が設定を変えたら即座に画面が変わる）
         onValue(ref(db, `settings/${lowerOwner}`), (settingsSnapshot) => {
             let ownerSettings = { publicInbox: true, selectedBadges: null };
             if (settingsSnapshot.exists()) {
@@ -704,12 +796,10 @@
 
             const isInboxPublic = ownerSettings.publicInbox !== false;
             
-            // お題のリスト同期を開始
             startOdaisListening(ownerName, false, isInboxPublic);
         });
     }
 
-    // 🔄 お題リストを完全にリアルタイム監視する関数（見えない設定のバグをここで修正）
     function startOdaisListening(username, isAdminView, isInboxPublic) {
         const odaisRef = ref(db, `odais/${username.toLowerCase()}`);
         
@@ -725,7 +815,6 @@
                 keys.forEach(id => {
                     const item = data[id];
                     
-                    // 【修正】非公開設定の時、一般画面では回答（answer）が無いお題は強制的にスキップして絶対に見せない
                     if (!isAdminView) {
                         if (!isInboxPublic && !item.answer) {
                             return;
@@ -737,7 +826,6 @@
                     const div = document.createElement('div');
                     div.className = 'odai-item';
                     
-                    // 🕒 ニックネームと投稿時間を横並びにするヘッダーレイアウト
                     const metaFlex = document.createElement('div');
                     metaFlex.className = 'odai-meta-flex';
 
@@ -747,7 +835,7 @@
                     
                     const timeDiv = document.createElement('div');
                     timeDiv.className = 'odai-time';
-                    timeDiv.innerText = formatTime(item.createdAt); // タイムスタンプ表示
+                    timeDiv.innerText = formatTime(item.createdAt); 
 
                     metaFlex.appendChild(senderDiv);
                     metaFlex.appendChild(timeDiv);
